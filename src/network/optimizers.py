@@ -2,16 +2,16 @@ import numpy as np
 
 
 class SGD:
-    def __init__(self, lr=1.0, decay=0.0, momentum=0.0):
+    def __init__(self, lr=1.0, lr_decay=0.0, momentum=0.0):
         self.lr = lr
         self.current_lr = lr
-        self.decay = decay
+        self.lr_decay = lr_decay
         self.iterations = 0
         self.momentum = momentum
 
     def pre_update_params(self):
-        if self.decay:
-            self.current_lr = self.lr / (1.0 + self.decay * self.iterations)
+        if self.lr_decay:
+            self.current_lr = self.lr / (1.0 + self.lr_decay * self.iterations)
 
     def update_params(self, layer):
         if self.momentum:
@@ -26,7 +26,6 @@ class SGD:
                 self.momentum - layer.dbiases * self.current_lr
             layer.biases_momentums = biases_updates
 
-        # Vanilla SGD
         else:
             weights_updates = -self.current_lr * layer.dweights
             biases_updates = -self.current_lr * layer.dbiases
@@ -40,18 +39,18 @@ class SGD:
 
 class Adam:
 
-    def __init__(self, lr=0.001, decay=0., epsilon=1e-7, beta_1=0.9, beta_2=0.999):
+    def __init__(self, lr=0.001, lr_decay=0., epsilon=1e-7, beta_1=0.9, beta_2=0.999):
         self.lr = lr
         self.current_lr = lr
-        self.decay = decay
+        self.lr_decay = lr_decay
         self.iterations = 0
         self.epsilon = epsilon
         self.beta_1 = beta_1
         self.beta_2 = beta_2
 
     def pre_update_params(self):
-        if self.decay:
-            self.current_lr = self.lr / (1. + self.decay * self.iterations)
+        if self.lr_decay:
+            self.current_lr = self.lr / (1. + self.lr_decay * self.iterations)
 
     def update_params(self, layer):
         if not hasattr(layer, 'weights_cache'):
