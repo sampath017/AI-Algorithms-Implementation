@@ -1,7 +1,7 @@
 import nnfs
 from nnfs.datasets import spiral_data
 
-from network.layers import Dense
+from network.layers import Dense, Dropout
 from network.activations import ReLU
 from network.commons import ActivationSoftmaxLossCategoricalCrossentropy
 from network.optimizers import Adam
@@ -14,9 +14,10 @@ X_test, y_test = spiral_data(100, 3)
 
 dense1 = Dense(2, 512, l2_weight_regularizer=5e-4, l2_bias_regularizer=5e-4)
 activation1 = ReLU()
+dropout1 = Dropout(0.1)
 dense2 = Dense(512, 3)
 activation_loss = ActivationSoftmaxLossCategoricalCrossentropy()
-optimizer = Adam(lr=0.02, lr_decay=5e-7)
+optimizer = Adam(lr=0.05, lr_decay=5e-5)
 
 # Training model
 EPOCHS = 10_000
@@ -24,7 +25,8 @@ for epoch in range(EPOCHS+1):
     # Forward pass
     dense1.forward(X)
     activation1.forward(dense1.output)
-    dense2.forward(activation1.output)
+    dropout1.forward(activation1.output)
+    dense2.forward(dropout1.output)
 
     data_loss = activation_loss.forward(dense2.output, y)
     regularization_loss = activation_loss.loss.regularization_loss(
@@ -41,7 +43,8 @@ for epoch in range(EPOCHS+1):
     # Backpass
     activation_loss.backward(activation_loss.output, y)
     dense2.backward(activation_loss.dinputs)
-    activation1.backward(dense2.dinputs)
+    dropout1.backward(dense2.dinputs)
+    activation1.backward(dropout1.dinputs)
     dense1.backward(activation1.dinputs)
 
     # Update params
