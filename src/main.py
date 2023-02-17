@@ -10,6 +10,7 @@ from network.metrics import Accuracy
 nnfs.init()
 
 X, y = spiral_data(1000, 3)
+X_test, y_test = spiral_data(100, 3)
 
 dense1 = Dense(2, 512, l2_weight_regularizer=5e-4, l2_bias_regularizer=5e-4)
 activation1 = ReLU()
@@ -50,8 +51,6 @@ for epoch in range(EPOCHS+1):
     optimizer.post_update_params()
 
 # Testing model
-X_test, y_test = spiral_data(100, 3)
-
 # Forward pass
 dense1.forward(X_test)
 activation1.forward(dense1.output)
