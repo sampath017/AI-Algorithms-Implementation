@@ -1,3 +1,4 @@
+import json
 import nnfs
 from nnfs.datasets import spiral_data
 
@@ -21,6 +22,8 @@ optimizer = Adam(lr=0.05, lr_decay=5e-5)
 
 # Training model
 EPOCHS = 10_000
+training_history = {'epochs': EPOCHS, 'accuracy': [], 'loss': [], 'lr': []}
+
 for epoch in range(EPOCHS+1):
     # Forward pass
     dense1.forward(X)
@@ -36,6 +39,9 @@ for epoch in range(EPOCHS+1):
     # Metrics
     accuracy = Accuracy(activation_loss.output, y)
 
+    training_history['accuracy'].append(float(accuracy))
+    training_history['loss'].append(float(loss))
+    training_history['lr'].append(float(optimizer.current_lr))
     if epoch % 100 == 0:
         print(
             f"epoch: {epoch} acc: {accuracy:.3f} (data_loss: {data_loss:.3f} regularization_loss: {regularization_loss:.3f}) loss: {loss:.3f}  lr: {optimizer.current_lr:.3f}")
@@ -53,6 +59,10 @@ for epoch in range(EPOCHS+1):
     optimizer.update_params(dense1)
     optimizer.post_update_params()
 
+# Save training history to JSON file
+with open('training_history.json', 'w') as f:
+    json.dump(training_history, f)
+
 # Testing model
 # Forward pass
 dense1.forward(X_test)
@@ -64,3 +74,8 @@ loss = activation_loss.forward(dense2.output, y_test)
 accuracy = Accuracy(activation_loss.output, y_test)
 print("\nTesting Metrics")
 print(f"acc: {accuracy:.3f} loss: {loss:.3f}\n")
+
+# Save testing metrics to JSON file
+testing_metrics = {'accuracy': float(accuracy), 'loss': float(loss)}
+with open('testing_metrics.json', 'w') as f:
+    json.dump(testing_metrics, f)
