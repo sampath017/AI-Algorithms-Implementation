@@ -5,7 +5,7 @@ class Dense:
     def __init__(self, n_inputs, n_neurons,
                  l1_weight_regularizer=0, l2_weight_regularizer=0,
                  l1_bias_regularizer=0, l2_bias_regularizer=0):
-        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
+        self.weights = 0.1 * np.random.randn(n_inputs, n_neurons)
         self.biases = np.zeros((1, n_neurons))
         self.l1_weight_regularizer = l1_weight_regularizer
         self.l2_weight_regularizer = l2_weight_regularizer

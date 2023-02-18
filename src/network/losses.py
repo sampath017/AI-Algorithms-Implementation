@@ -68,9 +68,37 @@ class BinaryCrossentropy(Loss):
     def backward(self, y_pred, y_true):
 
         n_samples = y_pred.shape[0]
-        n_outputs = len(y_pred[0])
+        n_outputs = y_pred.shape[1]
 
         clipped_y_pred = np.clip(y_pred, 1e-7, 1 - 1e-7)
         self.dinputs = -(y_true / clipped_y_pred -
                          (1 - y_true) / (1 - clipped_y_pred)) / n_outputs
+        self.dinputs = self.dinputs / n_samples
+
+
+class MeanSquaredError(Loss):
+    def forward(self, y_pred, y_true):
+        sample_losses = np.mean((y_true - y_pred)**2, axis=-1)
+
+        return sample_losses
+
+    def backward(self, y_pred, y_true):
+        n_samples = y_pred.shape[0]
+        n_outputs = y_pred.shape[1]
+
+        self.dinputs = -2 * (y_true - y_pred) / n_outputs
+        self.dinputs = self.dinputs / n_samples
+
+
+class MeanAbsoluteError(Loss):
+    def forward(self, y_pred, y_true):
+        sample_losses = np.mean(np.abs(y_true - y_pred), axis=-1)
+
+        return sample_losses
+
+    def backward(self, y_pred, y_true):
+        n_samples = y_pred.shape[0]
+        n_outputs = y_pred.shape[1]
+
+        self.dinputs = -np.sign(y_true - y_pred) / n_outputs
         self.dinputs = self.dinputs / n_samples
