@@ -1,23 +1,26 @@
 import nnfs
 from nnfs.datasets import spiral_data
 
+import numpy as np
+
 from network.layers import Dense, Dropout
-from network.activations import ReLU
+from network.activations import ReLU, Sigmoid
 from network.commons import ActivationSoftmaxLossCategoricalCrossentropy
 from network.optimizers import Adam
+from network.losses import BinaryCrossentropy
 from network.metrics import Accuracy
 
 nnfs.init()
 
-X, y = spiral_data(1000, 3)
-X_test, y_test = spiral_data(100, 3)
+X, y = spiral_data(samples=100, classes=2)
+y = y.reshape(-1, 1)
 
-dense1 = Dense(2, 512, l2_weight_regularizer=5e-4, l2_bias_regularizer=5e-4)
+dense1 = Dense(2, 64, l2_weight_regularizer=5e-4, l2_bias_regularizer=5e-4)
 activation1 = ReLU()
-dropout1 = Dropout(0.1)
-dense2 = Dense(512, 3)
-activation_loss = ActivationSoftmaxLossCategoricalCrossentropy()
-optimizer = Adam(lr=0.05, lr_decay=5e-5)
+dense2 = Dense(64, 1)
+activation2 = Sigmoid()
+loss_function = BinaryCrossentropy()
+optimizer = Adam(lr_decay=5e-7)
 
 # Training model
 EPOCHS = 10_000
@@ -25,26 +28,27 @@ for epoch in range(EPOCHS+1):
     # Forward pass
     dense1.forward(X)
     activation1.forward(dense1.output)
-    dropout1.forward(activation1.output)
-    dense2.forward(dropout1.output)
+    dense2.forward(activation1.output)
+    activation2.forward(dense2.output)
 
-    data_loss = activation_loss.forward(dense2.output, y)
-    regularization_loss = activation_loss.loss.regularization_loss(
-        dense1) + activation_loss.loss.regularization_loss(dense2)
+    data_loss = loss_function.calculate(activation2.output, y)
+    regularization_loss = loss_function.regularization_loss(
+        dense1) + loss_function.regularization_loss(dense2)
     loss = data_loss + regularization_loss
 
     # Metrics
-    accuracy = Accuracy(activation_loss.output, y)
+    predictions = (activation2.output > 0.5) * 1
+    accuracy = np.mean(predictions == y)
 
     if epoch % 100 == 0:
         print(
             f"epoch: {epoch} acc: {accuracy:.3f} (data_loss: {data_loss:.3f} regularization_loss: {regularization_loss:.3f}) loss: {loss:.3f}  lr: {optimizer.current_lr:.3f}")
 
     # Backpass
-    activation_loss.backward(activation_loss.output, y)
-    dense2.backward(activation_loss.dinputs)
-    dropout1.backward(dense2.dinputs)
-    activation1.backward(dropout1.dinputs)
+    loss_function.backward(activation2.output, y)
+    activation2.backward(loss_function.dinputs)
+    dense2.backward(activation2.dinputs)
+    activation1.backward(dense2.dinputs)
     dense1.backward(activation1.dinputs)
 
     # Update params
@@ -55,12 +59,18 @@ for epoch in range(EPOCHS+1):
 
 # Testing model
 # Forward pass
+X_test, y_test = spiral_data(samples=100, classes=2)
+y_test = y_test.reshape(-1, 1)
+
 dense1.forward(X_test)
 activation1.forward(dense1.output)
 dense2.forward(activation1.output)
-loss = activation_loss.forward(dense2.output, y_test)
+activation2.forward(dense2.output)
+loss = loss_function.calculate(activation2.output, y_test)
 
 # Metrics
-accuracy = Accuracy(activation_loss.output, y_test)
+predictions = (activation2.output > 0.5) * 1
+accuracy = np.mean(predictions == y_test)
+
 print("\nTesting Metrics")
 print(f"acc: {accuracy:.3f} loss: {loss:.3f}\n")
