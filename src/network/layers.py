@@ -12,7 +12,7 @@ class Dense:
         self.l1_bias_regularizer = l1_bias_regularizer
         self.l2_bias_regularizer = l2_bias_regularizer
 
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = np.dot(inputs, self.weights) + self.biases
 
@@ -45,8 +45,13 @@ class Dropout:
     def __init__(self, rate):
         self.rate = 1 - rate
 
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
+
+        if not training:
+            self.output = inputs.copy()
+            return
+
         self.binary_mask = np.random.binomial(
             1, self.rate, size=inputs.shape) / self.rate
         self.output = self.inputs * self.binary_mask
@@ -56,6 +61,5 @@ class Dropout:
 
 
 class Input:
-    def forward(self, inputs):
-        self.inputs = inputs
+    def forward(self, inputs, training):
         self.output = inputs
