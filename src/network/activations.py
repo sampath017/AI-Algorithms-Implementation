@@ -10,6 +10,9 @@ class ReLU:
         self.dinputs = dvalues.copy()
         self.dinputs[self.inputs <= 0] = 0
 
+    def predictions(self, outputs):
+        return outputs
+
 
 class Softmax:
     def forward(self, inputs):
@@ -29,6 +32,9 @@ class Softmax:
 
             self.dinputs[index] = np.dot(jacobian_matrix, single_dvalues)
 
+    def predictions(self, outputs):
+        return np.argmax(outputs, axis=1)
+
 
 class Sigmoid:
     def forward(self, inputs):
@@ -38,6 +44,9 @@ class Sigmoid:
     def backward(self, dvalues):
         self.dinputs = dvalues * (1-self.output) * self.output
 
+    def predictions(self, outputs):
+        return (outputs > 0.5) * 1
+
 
 class Linear:
     def forward(self, inputs):
@@ -46,3 +55,6 @@ class Linear:
 
     def backward(self, dvalues):
         self.dinputs = dvalues.copy()
+
+    def predictions(self, outputs):
+        return outputs

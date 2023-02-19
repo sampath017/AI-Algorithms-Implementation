@@ -53,3 +53,9 @@ class Dropout:
 
     def backward(self, dvalues):
         self.dinputs = dvalues * self.binary_mask
+
+
+class Input:
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.output = inputs

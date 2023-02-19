@@ -2,30 +2,37 @@ import numpy as np
 
 
 class Loss:
-    def calculate(self, output, y_true):
+    def remember_trainable_layers(self, trainable_layers):
+        self.trainable_layers = trainable_layers
+
+    def calculate(self, output, y_true, include_regularization=False):
         sample_losses = self.forward(output, y_true)
         data_loss = np.mean(sample_losses)
 
-        return data_loss
+        if not include_regularization:
+            return data_loss
 
-    def regularization_loss(self, layer):
+        return data_loss, self.regularization_loss()
+
+    def regularization_loss(self):
         regularization_loss = 0
 
-        if layer.l1_weight_regularizer > 0:
-            regularization_loss += layer.l1_weight_regularizer * \
-                np.sum(abs(layer.weights))
+        for layer in self.trainable_layers:
+            if layer.l1_weight_regularizer > 0:
+                regularization_loss += layer.l1_weight_regularizer * \
+                    np.sum(abs(layer.weights))
 
-        if layer.l1_bias_regularizer > 0:
-            regularization_loss += layer.l1_bias_regularizer * \
-                np.sum(abs(layer.biases))
+            if layer.l1_bias_regularizer > 0:
+                regularization_loss += layer.l1_bias_regularizer * \
+                    np.sum(abs(layer.biases))
 
-        if layer.l2_weight_regularizer > 0:
-            regularization_loss += layer.l2_weight_regularizer * \
-                np.sum(layer.weights ** 2)
+            if layer.l2_weight_regularizer > 0:
+                regularization_loss += layer.l2_weight_regularizer * \
+                    np.sum(layer.weights ** 2)
 
-        if layer.l2_bias_regularizer > 0:
-            regularization_loss += layer.l2_bias_regularizer * \
-                np.sum(layer.biases ** 2)
+            if layer.l2_bias_regularizer > 0:
+                regularization_loss += layer.l2_bias_regularizer * \
+                    np.sum(layer.biases ** 2)
 
         return regularization_loss
 

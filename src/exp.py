@@ -632,7 +632,7 @@ class Loss_MeanAbsoluteError(Loss):  # L1 loss
 
 
 # Create dataset
-X, y = sine_data()
+X_true, y = sine_data()
 
 # Create Dense layer with 1 input feature and 64 output values
 dense1 = Layer_Dense(1, 64)
@@ -674,7 +674,7 @@ accuracy_precision = np.std(y) / 250
 for epoch in range(10001):
 
     # Perform a forward pass of our training data through this layer
-    dense1.forward(X)
+    dense1.forward(X_true)
 
     # Perform a forward pass through activation function
     # takes the output of first dense layer here
