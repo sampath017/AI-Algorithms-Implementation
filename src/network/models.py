@@ -232,3 +232,23 @@ class Model:
             model = pickle.load(file)
 
         return model
+
+    def predict(self, X, *, batch_size=None):
+        prediction_steps = 1
+
+        if batch_size:
+            prediction_steps = np.ceil(
+                X.shape[0] / batch_size).astype(np.int32)
+
+        output = []
+
+        for step in range(prediction_steps):
+            if batch_size is None:
+                batch_X = X
+            else:
+                batch_X = X[step*batch_size:(step+1)*batch_size]
+
+            batch_output = self.forward(batch_X, training=False)
+            output.append(batch_output)
+
+            return np.vstack(output)

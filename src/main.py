@@ -46,4 +46,8 @@ X_test = (X_test.reshape(
 
 model = Model.load("fashion_mnist.model")
 
-model.evaluate(X_test, y_test)
+confidences = model.predict(X_test[:5])
+predictions = model.output_layer_activation.predictions(confidences)
+
+print(predictions)
+print(y_test[:5])
