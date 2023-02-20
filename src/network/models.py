@@ -158,3 +158,33 @@ class Model:
 
         for layer in reversed(self.layers):
             layer.backward(layer.next.dinputs)
+
+    def evaluate(self, X_test, y_test, *, batch_size=None):
+        testing_steps = 1
+        if batch_size:
+            testing_steps = np.ceil(
+                X_test.shape[0] / batch_size).astype(np.int32)
+
+        self.loss.new_pass()
+        self.accuracy.new_pass()
+
+        for step in range(testing_steps):
+            if batch_size is None:
+                batch_X = X_test
+                batch_y = y_test
+            else:
+                batch_X = X_test[step*batch_size:(step+1)*batch_size]
+                batch_y = y_test[step*batch_size:(step+1)*batch_size]
+
+            y_pred = self.forward(batch_X, training=False)
+            self.loss.calculate(y_pred, batch_y)
+
+            predictions = self.output_layer_activation.predictions(
+                y_pred)
+            self.accuracy.calculate(predictions, batch_y)
+
+        testing_loss = self.loss.calculate_accumulated()
+        testing_accuracy = self.accuracy.calculate_accumulated()
+
+        print(
+            f"Testing, acc: {testing_accuracy:.3f}, loss: {testing_loss:.3f}")

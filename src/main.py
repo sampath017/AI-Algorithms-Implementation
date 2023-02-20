@@ -49,3 +49,5 @@ model.compile(
 
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=30, print_every=100,
           batch_size=128)
+
+model.evaluate(X_train, y_train)
