@@ -1,3 +1,4 @@
+import copy
 import pickle
 from .layers import Input
 from .losses import CategoricalCrossentropy
@@ -208,3 +209,26 @@ class Model:
     def load_params(self, path):
         with open(path, "rb") as file:
             self.set_params(pickle.load(file))
+
+    def save(self, path):
+        model = copy.deepcopy(self)
+
+        model.loss.new_pass()
+        model.accuracy.new_pass()
+
+        model.input_layer.__dict__.pop("output", None)
+        model.loss.__dict__.pop("dinputs", None)
+
+        for layer in model.layers:
+            for prop in ["inputs", "output", "dinputs", "dweights", "dbiases"]:
+                layer.__dict__.pop(prop, None)
+
+        with open(path, "wb") as file:
+            pickle.dump(model, file)
+
+    @staticmethod
+    def load(path):
+        with open(path, "rb") as file:
+            model = pickle.load(file)
+
+        return model
