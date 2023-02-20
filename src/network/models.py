@@ -1,3 +1,4 @@
+import pickle
 from .layers import Input
 from .losses import CategoricalCrossentropy
 from .activations import Softmax
@@ -12,10 +13,13 @@ class Model:
     def add(self, layer):
         self.layers.append(layer)
 
-    def compile(self, *, loss, optimizer, accuracy):
-        self.loss = loss
-        self.optimizer = optimizer
-        self.accuracy = accuracy
+    def compile(self, *, loss=None, optimizer=None, accuracy=None):
+        if loss:
+            self.loss = loss
+        if optimizer:
+            self.optimizer = optimizer
+        if accuracy:
+            self.accuracy = accuracy
 
         self.input_layer = Input()
 
@@ -39,9 +43,10 @@ class Model:
             if hasattr(self.layers[i], 'weights'):
                 self.trainable_layers.append(self.layers[i])
 
-        self.loss.remember_trainable_layers(
-            self.trainable_layers
-        )
+        if self.loss:
+            self.loss.remember_trainable_layers(
+                self.trainable_layers
+            )
 
         if isinstance(self.layers[-1], Softmax) and isinstance(self.loss, CategoricalCrossentropy):
             self.softmax_classifier_output = ActivationSoftmaxLossCategoricalCrossentropy()
@@ -188,3 +193,18 @@ class Model:
 
         print(
             f"Testing, acc: {testing_accuracy:.3f}, loss: {testing_loss:.3f}")
+
+    def get_params(self):
+        return [layer.get_params() for layer in self.trainable_layers]
+
+    def set_params(self, params):
+        for parameter_set, layer in zip(params, self.trainable_layers):
+            layer.set_params(*parameter_set)
+
+    def save_params(self, path):
+        with open(path, "wb") as file:
+            pickle.dump(self.get_params(), file)
+
+    def load_params(self, path):
+        with open(path, "rb") as file:
+            self.set_params(pickle.load(file))

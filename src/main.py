@@ -31,14 +31,11 @@ X_test = (X_test.reshape(
 
 model = Model()
 
-model.add(Dense(
-    X_train.shape[1], 1024, l2_weight_regularizer=5e-4, l2_bias_regularizer=5e-4))
+model.add(Dense(X_train.shape[1], 128))
 model.add(ReLU())
-model.add(Dropout(0.3))
-model.add(Dense(1024, 1024, l2_weight_regularizer=5e-4, l2_bias_regularizer=5e-4))
+model.add(Dense(128, 128))
 model.add(ReLU())
-model.add(Dropout(0.3))
-model.add(Dense(1024, 10))
+model.add(Dense(128, 10))
 model.add(Softmax())
 
 model.compile(
@@ -47,7 +44,9 @@ model.compile(
     accuracy=Categorical()
 )
 
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=30, print_every=100,
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=10, print_every=100,
           batch_size=128)
 
-model.evaluate(X_train, y_train)
+model.save_params("fashion_mnist.parms")
+
+model.evaluate(X_test, y_test)

@@ -40,6 +40,13 @@ class Dense:
 
         self.dinputs = np.dot(dvalues, self.weights.T)
 
+    def get_params(self):
+        return self.weights, self.biases
+
+    def set_params(self, weights, biases):
+        self.weights = weights
+        self.biases = biases
+
 
 class Dropout:
     def __init__(self, rate):
