@@ -2,6 +2,7 @@ from .layers import Input
 from .losses import CategoricalCrossentropy
 from .activations import Softmax
 from .commons import ActivationSoftmaxLossCategoricalCrossentropy
+import numpy as np
 
 
 class Model:
@@ -53,31 +54,94 @@ class Model:
 
         return layer.output
 
-    def fit(self, X_true, y_true, *, epochs=1, print_every=1):
+    def fit(self, X_true, y_true, *, epochs=1, batch_size=None, print_every=1, validation_data=None):
         self.accuracy.init(y_true)
 
+        train_steps = 1
+
+        if validation_data:
+            validation_steps = 1
+            X_val, y_val = validation_data
+
+        if batch_size:
+            train_steps = np.ceil(
+                X_true.shape[0] / batch_size).astype(np.int32)
+
+            if validation_data:
+                validation_steps = np.ceil(
+                    X_val.shape[0] / batch_size).astype(np.int32)
+
         for epoch in range(1, epochs+1):
-            y_pred = self.forward(X_true, training=True)
+            print(f"epoch: {epoch}")
 
-            data_loss, regularization_loss = self.loss.calculate(
-                y_pred, y_true, include_regularization=True)
-            loss = data_loss + regularization_loss
+            self.loss.new_pass()
+            self.accuracy.new_pass()
 
-            predictions = self.output_layer_activation.predictions(
-                y_pred)
-            accuracy = self.accuracy.calculate(predictions, y_true)
+            for step in range(train_steps):
+                if batch_size is None:
+                    batch_X = X_true
+                    batch_y = y_true
 
-            self.backward(y_pred, y_true)
+                else:
+                    batch_X = X_true[step*batch_size:(step+1)*batch_size]
+                    batch_y = y_true[step*batch_size:(step+1)*batch_size]
 
-            # Optimize (update parameters)
-            self.optimizer.pre_update_params()
-            for layer in self.trainable_layers:
-                self.optimizer.update_params(layer)
-            self.optimizer.post_update_params()
+                y_pred = self.forward(batch_X, training=True)
 
-            # Print a summary
+                data_loss, regularization_loss = self.loss.calculate(
+                    y_pred, batch_y, include_regularization=True)
+                loss = data_loss + regularization_loss
+
+                predictions = self.output_layer_activation.predictions(
+                    y_pred)
+                accuracy = self.accuracy.calculate(predictions, batch_y)
+
+                self.backward(y_pred, batch_y)
+
+                # Optimize (update parameters)
+                self.optimizer.pre_update_params()
+                for layer in self.trainable_layers:
+                    self.optimizer.update_params(layer)
+                self.optimizer.post_update_params()
+
+                # Print a summary
+                if not step % print_every or step == train_steps - 1:
+                    print(
+                        f"step: {step}, acc: {accuracy:.3f}, loss: {loss:.3f} (data_loss: {data_loss:.3f}, reg_loss: {regularization_loss:.3f}), lr: {self.optimizer.current_lr}")
+
+            epoch_data_loss, epoch_regularization_loss = self.loss.calculate_accumulated(
+                include_regularization=True)
+            epoch_loss = epoch_data_loss + epoch_regularization_loss
+            epoch_accuracy = self.accuracy.calculate_accumulated()
+
             if not epoch % print_every:
-                print(f"epoch: {epoch}, acc: {accuracy:.3f}, loss: {loss:.3f} (data_loss: {data_loss:.3f}, reg_loss: {regularization_loss:.3f}), lr: {self.optimizer.current_lr}")
+                print(
+                    f"Training, acc: {epoch_accuracy:.3f}, loss: {epoch_loss:.3f} (data_loss: {epoch_data_loss:.3f}, reg_loss: {epoch_regularization_loss:.3f}), lr: {self.optimizer.current_lr}")
+
+            if validation_data:
+                self.loss.new_pass()
+                self.accuracy.new_pass()
+
+                for step in range(validation_steps):
+                    if batch_size is None:
+                        batch_X = X_val
+                        batch_y = y_val
+                    else:
+                        batch_X = X_val[step*batch_size:(step+1)*batch_size]
+                        batch_y = y_val[step*batch_size:(step+1)*batch_size]
+
+                    y_pred = self.forward(batch_X, training=False)
+                    self.loss.calculate(y_pred, batch_y)
+
+                    predictions = self.output_layer_activation.predictions(
+                        y_pred)
+                    self.accuracy.calculate(predictions, batch_y)
+
+                validation_loss = self.loss.calculate_accumulated()
+                validation_accuracy = self.accuracy.calculate_accumulated()
+
+                print(
+                    f"Validation, acc: {validation_accuracy:.3f}, loss: {validation_loss:.3f}")
 
     def backward(self, y_pred, y_true):
         if self.softmax_classifier_output is not None:
@@ -94,13 +158,3 @@ class Model:
 
         for layer in reversed(self.layers):
             layer.backward(layer.next.dinputs)
-
-    def evaluate(self, X_test, y_test):
-        y_pred = self.forward(X_test, training=False)
-        loss = self.loss.calculate(y_pred, y_test)
-        predictions = self.output_layer_activation.predictions(
-            y_pred)
-        accuracy = self.accuracy.calculate(predictions, y_test)
-
-        # Print a summary
-        print(f'Testing, acc: {accuracy:.3f}, loss: {loss:.3f}')
