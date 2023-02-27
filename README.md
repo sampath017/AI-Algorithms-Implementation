@@ -6,13 +6,17 @@ This code is inspired from the book https://nnfs.io/
 
 ## Getting Started
 
-To get started with this repository, you need to have Python 3 and the following libraries installed:
+# Installation
+To install you need to have Python 3 and the following libraries installed:
 
 - NumPy
 
 Or with virtual enviromemnt (poetry) 
 `pip install poetry` or follow offical poetry installation
 and poetry install to install all dependences
+
+# Running 
+Run main.py in src which has the model and nessecary configuration for basic model, edit at your will.
 
 ## Contributing
 
