@@ -1,27 +1,22 @@
-
 # Neural Networks
 
-This repository contains code building and training neural networks using pure python, numpy and basic libs.
-This code is inspired from the book https://nnfs.io/
+This repository contains code for building and training neural networks using pure Python, NumPy, and basic libraries. The code is inspired by the book [Neural Networks from Scratch](https://nnfs.io/).
 
 ## Getting Started
 
 ### Installation
-To install you need to have Python 3 and the following libraries installed:
-
+To install, you need to have Python 3 and the following libraries installed:
 - NumPy
 
-Or with virtual enviromemnt (poetry) 
-`pip install poetry` or follow offical poetry installation
-and poetry install to install all dependences
+Or, with virtual environment (Poetry):
+1. Install Poetry: `pip install poetry`
+2. Install dependencies: `poetry install`
 
-### Running 
-Run main.py in src which has the model and nessecary configuration for basic model, edit at your will.
+### Running
+Run `main.py` in `src`, which has the model and necessary configurations for a basic model. Edit it at your will.
 
 ## Contributing
-
 If you find a bug or have a suggestion for improvement, feel free to open an issue or submit a pull request.
 
 ## License
-
-This repository is licensed under the GPL License. See the [LICENSE](LICENSE) file for details.
+This repository is licensed under the GPL-v3.0 License. See the `LICENSE` file for details.
