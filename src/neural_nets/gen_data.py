@@ -50,7 +50,7 @@ def create_data_mnist(path):
 
     download_and_extract()
 
-    X_train, y_train = load_mnist('train', path)
+    X_true, y_true = load_mnist('train', path)
     X_test, y_test = load_mnist('test', path)
 
-    return X_train, y_train, X_test, y_test
+    return X_true, y_true, X_test, y_test
