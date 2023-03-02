@@ -1,18 +1,12 @@
 ## TODO
 
-### ml package
+### MachineLearning package
 
 1. compartmentalize losses.py and LinearRegression classes.
-2. Write pytests.
-3. Write doc strings.
 
 ## Dependencies
 
-To install, you need to have Python 3 and the following libraries installed:
-
-- NumPy
-
-Or, with virtual environment [pypoetry](https://python-poetry.org/):
+Recommended to use virtual environment [pypoetry](https://python-poetry.org/).
 
 ## Contributing
 
