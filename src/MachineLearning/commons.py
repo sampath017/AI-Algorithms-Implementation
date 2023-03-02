@@ -18,8 +18,9 @@ class Model_LinearRegression_Loss_Mean_Squared_Error:
         self.loss_function.calculate(y_true, self.output)
 
     def backprop(self, dvalue=1.0):
-        self.dm = self.dvalue * 2*np.mean(self.model.X_true * (self.model.X_true *
-                                                               self.model.m + self.model.b - self.model.y_true))
+        self.dvalue = dvalue
+        self.model.dm = self.dvalue * 2*np.mean(self.model.X_true * (self.model.X_true *
+                                                                     self.model.m + self.model.b - self.model.y_true))
 
-        self.db = self.dvalue * 2*np.mean(self.model.X_true * self.model.m +
-                                          self.model.b - self.model.y_true)
+        self.model.db = self.dvalue * 2*np.mean(self.model.X_true * self.model.m +
+                                                self.model.b - self.model.y_true)
